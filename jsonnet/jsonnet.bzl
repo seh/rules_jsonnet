@@ -188,16 +188,20 @@ def _jsonnet_to_json_test_impl(ctx):
       runfiles = ctx.runfiles(files = test_inputs, collect_data = True))
 
 _jsonnet_common_attrs = {
-    "deps": attr.label_list(providers = ["transitive_jsonnet_files"],
-                            allow_files = False),
+    "deps": attr.label_list(
+        providers = ["transitive_jsonnet_files"],
+        allow_files = False,
+    ),
     "imports": attr.string_list(),
     "_jsonnet": attr.label(
-        default = Label("@bazel_tools//tools/build_defs/jsonnet:jsonnet"),
+        default = Label("//jsonnet:jsonnet"),
         executable = True,
-        single_file = True),
+        single_file = True,
+    ),
     "_std": attr.label(
-        default = Label("@bazel_tools//tools/build_defs/jsonnet:std"),
-        single_file = True),
+        default = Label("//jsonnet:std"),
+        single_file = True,
+    ),
 }
 
 _jsonnet_library_attrs = {
@@ -210,8 +214,10 @@ jsonnet_library = rule(
 )
 
 _jsonnet_compile_attrs = {
-    "src": attr.label(allow_files = _JSONNET_FILETYPE,
-                      single_file = True),
+    "src": attr.label(
+        allow_files = _JSONNET_FILETYPE,
+        single_file = True,
+    ),
     "vars": attr.string_dict(),
     "code_vars": attr.string_dict(),
 }
@@ -227,7 +233,10 @@ jsonnet_to_json = rule(
 )
 
 _jsonnet_to_json_test_attrs = _jsonnet_compile_attrs + {
-    "golden": attr.label(allow_files = True, single_file = True),
+    "golden": attr.label(
+        allow_files = True,
+        single_file = True,
+    ),
     "error": attr.int(),
     "regex": attr.bool(),
 }
