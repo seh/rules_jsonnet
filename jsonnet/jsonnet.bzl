@@ -141,6 +141,7 @@ def _jsonnet_to_json_test_impl(ctx):
   toolchain = _jsonnet_toolchain(ctx)
 
   golden_files = []
+  diff_command = ""
   if ctx.file.golden:
     golden_files += [ctx.file.golden]
     if ctx.attr.regex:
@@ -166,14 +167,16 @@ def _jsonnet_to_json_test_impl(ctx):
           "2>&1)",
       ])
 
-  command = "\n".join([
+  command = [
       "#!/bin/bash",
       jsonnet_command,
       _EXIT_CODE_COMPARE_COMMAND % (ctx.attr.error, ctx.label.name),
-      diff_command])
+  ]
+  if diff_command:
+    command += [diff_command]
 
   ctx.file_action(output = ctx.outputs.executable,
-                  content = command,
+                  content = "\n".join(command),
                   executable = True);
 
   test_inputs = (
