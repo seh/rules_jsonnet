@@ -65,3 +65,9 @@ jsonnet_to_json_test(
     error = 1,
     golden = "invalid.out",
 )
+
+jsonnet_to_json_test(
+    name = "invalid_failed_test",
+    src = "invalid.jsonnet",
+    error = 1,
+)
