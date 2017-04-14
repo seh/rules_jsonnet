@@ -80,7 +80,7 @@ def _jsonnet_library_impl(ctx):
 
 def _jsonnet_toolchain(ctx):
   return struct(
-      jsonnet_path = ctx.file.jsonnet.path)
+      jsonnet_path = ctx.executable.jsonnet.path)
 
 def _jsonnet_to_json_impl(ctx):
   """Implementation of the jsonnet_to_json rule."""
@@ -126,7 +126,7 @@ def _jsonnet_to_json_impl(ctx):
   )
 
   compile_inputs = (
-      [ctx.file.src, ctx.file.jsonnet] +
+      [ctx.file.src, ctx.executable.jsonnet] +
       list(runfiles.files) +
       list(depinfo.transitive_sources))
 
@@ -180,15 +180,20 @@ def _jsonnet_to_json_test_impl(ctx):
   diff_command = ""
   if ctx.file.golden:
     golden_files += [ctx.file.golden]
+    # Note that we only run jsonnet to canonicalize the golden output if the
+    # expected return code is 0. Otherwise, the golden file contains the
+    # expected error output.
+    dump_golden_cmd = (ctx.executable.jsonnet.short_path if ctx.attr.error == 0
+                       else '/bin/cat')
     if ctx.attr.regex:
       diff_command = _REGEX_DIFF_COMMAND % (
-          ctx.file.jsonnet.short_path,
+          dump_golden_cmd,
           ctx.file.golden.short_path,
           ctx.label.name,
       )
     else:
       diff_command = _DIFF_COMMAND % (
-          ctx.file.jsonnet.short_path,
+          dump_golden_cmd,
           ctx.file.golden.short_path,
           ctx.label.name,
       )
@@ -196,7 +201,7 @@ def _jsonnet_to_json_test_impl(ctx):
   jsonnet_vars = ctx.attr.vars
   jsonnet_code_vars = ctx.attr.code_vars
   jsonnet_command = " ".join(
-      ["OUTPUT=$(%s" % ctx.file.jsonnet.short_path] +
+      ["OUTPUT=$(%s" % ctx.executable.jsonnet.short_path] +
       ["-J %s/%s" % (ctx.label.package, im) for im in ctx.attr.imports] +
       ["-J %s" % im for im in depinfo.imports] +
       ["-J ."] +
@@ -226,7 +231,7 @@ def _jsonnet_to_json_test_impl(ctx):
     transitive_data += dep.data_runfiles.files
 
   test_inputs = (
-      [ctx.file.src, ctx.file.jsonnet] +
+      [ctx.file.src, ctx.executable.jsonnet] +
       golden_files +
       list(transitive_data) +
       list(depinfo.transitive_sources))
