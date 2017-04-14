@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-local wordcount = import "examples/wordcount.jsonnet";
-local intersection = import "examples/intersection.jsonnet";
+local wordcount = import "wordcount.jsonnet";
+local intersection = import "intersection.jsonnet";
 
 {
   "wordcount-workflow.json": wordcount,
