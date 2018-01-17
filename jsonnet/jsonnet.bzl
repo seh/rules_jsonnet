@@ -39,7 +39,7 @@ jsonnet_repositories()
 ```
 """
 
-_JSONNET_FILETYPE = FileType([".jsonnet", ".libsonnet"])
+_JSONNET_FILETYPE = FileType([".jsonnet", ".libsonnet", ".json"])
 
 def _setup_deps(deps):
   """Collects source files and import flags of transitive dependencies.
