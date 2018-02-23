@@ -1,3 +1,5 @@
+[![Build status](https://badge.buildkite.com/c3449aba989713394a3237070971eb59b92ad19d6f69555a25.svg)](https://buildkite.com/bazel/rules-jsonnet-postsubmit)
+
 # Jsonnet Rules
 
 <div class="toc">
