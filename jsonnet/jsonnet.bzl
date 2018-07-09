@@ -309,7 +309,6 @@ _jsonnet_common_attrs = {
     ),
     "data": attr.label_list(
         allow_files = True,
-        cfg = "data",
     ),
 }
 
