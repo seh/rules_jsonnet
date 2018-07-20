@@ -1,2 +1,2 @@
 build --action_env MYTEST="test" --action_env MYJSONNET="{code: 'some code'}"
-build --define mydefine="sky
+build --define mydefine="sky"
