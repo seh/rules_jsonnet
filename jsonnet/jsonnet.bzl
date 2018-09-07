@@ -382,10 +382,7 @@ Example:
 """
 
 _jsonnet_compile_attrs = {
-    "src": attr.label(
-        allow_files = _JSONNET_FILETYPE,
-        single_file = True,
-    ),
+    "src": attr.label(allow_single_file = _JSONNET_FILETYPE),
     "vars": attr.string_dict(),  # Deprecated (use 'ext_strs').
     "code_vars": attr.string_dict(),  # Deprecated (use 'ext_code').
     "ext_strs": attr.string_dict(),
