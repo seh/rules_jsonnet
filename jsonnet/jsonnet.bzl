@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 """Jsonnet Rules
 
 These are build rules for working with [Jsonnet][jsonnet] files with Bazel.
@@ -123,7 +125,7 @@ def _jsonnet_to_json_impl(ctx):
           toolchain.jsonnet_path,
       ] +
       ["-J %s/%s" % (ctx.label.package, im) for im in ctx.attr.imports] +
-      ["-J %s" % im for im in depinfo.imports] +
+      ["-J %s" % im for im in depinfo.imports.to_list()] +
       ["-J .",
        "-J %s" % ctx.genfiles_dir.path,
        "-J %s" % ctx.bin_dir.path] +
@@ -176,12 +178,15 @@ def _jsonnet_to_json_impl(ctx):
   )
 
   compile_inputs = (
-      [ctx.file.src, ctx.executable.jsonnet] +
-      list(runfiles.files) +
-      list(depinfo.transitive_sources))
+      [ctx.file.src] +
+      runfiles.files.to_list() +
+      depinfo.transitive_sources.to_list())
 
-  ctx.action(
+  tools = [ctx.executable.jsonnet]
+
+  ctx.actions.run_shell(
       inputs = compile_inputs,
+      tools = tools,
       outputs = outputs,
       mnemonic = "Jsonnet",
       command = " ".join(command),
@@ -321,7 +326,7 @@ _jsonnet_common_attrs = {
         default = Label("@jsonnet//cmd:jsonnet"),
         cfg = "host",
         executable = True,
-        single_file = True,
+        allow_single_file = True,
     ),
     "data": attr.label_list(
         allow_files = True,
@@ -559,10 +564,7 @@ Example:
 """
 
 _jsonnet_to_json_test_attrs = {
-    "golden": attr.label(
-        allow_files = True,
-        single_file = True,
-    ),
+    "golden": attr.label(allow_single_file = True),
     "error": attr.int(),
     "regex": attr.bool(),
     "yaml_stream": attr.bool(
@@ -699,7 +701,7 @@ Example:
 
 def jsonnet_repositories():
   """Adds the external dependencies needed for the Jsonnet rules."""
-  native.http_archive(
+  http_archive(
       name = "jsonnet",
       urls = [
           "https://mirror.bazel.build/github.com/google/jsonnet/archive/v0.11.2.tar.gz",
