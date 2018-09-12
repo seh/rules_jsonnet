@@ -92,13 +92,51 @@ def _jsonnet_toolchain(ctx):
       jsonnet_path = ctx.executable.jsonnet.path)
 
 def _quote(s):
-  return "'" + s.replace("'", "'\\''") + "'"
+  return '"' + s.replace('"', '\\"') + '"'
+
+def _stamp_resolve(ctx, string, output):
+  stamps = [ctx.info_file, ctx.version_file]
+  stamp_args = [
+    "--stamp-info-file=%s" % sf.path
+    for sf in stamps
+  ]
+  ctx.action(
+    executable = ctx.executable._stamper,
+    arguments = [
+      "--format=%s" % string,
+      "--output=%s" % output.path,
+    ] + stamp_args,
+    inputs = [ctx.executable._stamper] + stamps,
+    outputs = [output],
+    mnemonic = "Stamp"
+  )
 
 def _make_resolve(ctx, val):
     if val[0:2] == "$(" and val[-1] == ")":
         return ctx.var[val[2:-1]]
     else:
         return val
+
+def _make_stamp_resolve(ext_vars, ctx, relative=True):
+  results = {}
+  stamp_inputs = []
+  for key, val in ext_vars.items():
+    # Check for make variables
+    val = _make_resolve(ctx, val)
+    # Check for stamp variables
+    if ctx.attr.stamp_keys:
+      if key in ctx.attr.stamp_keys:
+        stamp_file = ctx.actions.declare_file(ctx.label.name + ".jsonnet_" + key)
+        _stamp_resolve(ctx, val, stamp_file)
+        if relative:
+          val = '$(cat %s)' % stamp_file.short_path
+        else:
+          val = '$(cat %s)' % stamp_file.path
+        stamp_inputs += [stamp_file]
+
+    results[key] = val
+
+  return results, stamp_inputs
 
 def _jsonnet_to_json_impl(ctx):
   """Implementation of the jsonnet_to_json rule."""
@@ -118,6 +156,14 @@ def _jsonnet_to_json_impl(ctx):
   jsonnet_ext_str_file_vars = ctx.attr.ext_str_file_vars
   jsonnet_ext_code_files = ctx.attr.ext_code_files
   jsonnet_ext_code_file_vars = ctx.attr.ext_code_file_vars
+
+  jsonnet_ext_strs, strs_stamp_inputs = _make_stamp_resolve(ctx.attr.ext_strs, ctx, False)
+  jsonnet_ext_code, code_stamp_inputs = _make_stamp_resolve(ctx.attr.ext_code, ctx, False)
+  stamp_inputs = strs_stamp_inputs + code_stamp_inputs
+
+  if ctx.attr.stamp_keys and not stamp_inputs:
+    fail("Stamping requested but found no stamp variable to resolve for.")
+
   yaml_stream_arg = ["-y"] if ctx.attr.yaml_stream else []
   command = (
       [
@@ -131,12 +177,12 @@ def _jsonnet_to_json_impl(ctx):
        "-J %s" % ctx.bin_dir.path] +
       yaml_stream_arg +
       ["--ext-str %s=%s"
-       % (_quote(key), _quote(_make_resolve(ctx, val))) for key, val in jsonnet_ext_strs.items()] +
+       % (_quote(key), _quote(val)) for key, val in jsonnet_ext_strs.items()] +
       ["--ext-str '%s'"
        % ext_str_env for ext_str_env in jsonnet_ext_str_envs] +
-      ["--ext-code '%s'='%s'"
-       % (var, jsonnet_ext_code[var]) for var in jsonnet_ext_code.keys()] +
-      ["--ext-code '%s'"
+      ["--ext-code %s=%s"
+       % (_quote(key), _quote(val)) for key, val in jsonnet_ext_code.items()] +
+      ["--ext-code %s"
        % ext_code_env for ext_code_env in jsonnet_ext_code_envs] +
       ["--ext-str-file %s=%s"
        % (var, list(jfile.files)[0].path) for var, jfile in zip(jsonnet_ext_str_file_vars, jsonnet_ext_str_files)] +
@@ -185,7 +231,7 @@ def _jsonnet_to_json_impl(ctx):
   tools = [ctx.executable.jsonnet]
 
   ctx.actions.run_shell(
-      inputs = compile_inputs,
+      inputs = compile_inputs + stamp_inputs,
       tools = tools,
       outputs = outputs,
       mnemonic = "Jsonnet",
@@ -253,14 +299,17 @@ def _jsonnet_to_json_test_impl(ctx):
           ctx.label.name,
       )
 
-  jsonnet_ext_strs = ctx.attr.ext_strs
   jsonnet_ext_str_envs = ctx.attr.ext_str_envs
-  jsonnet_ext_code = ctx.attr.ext_code
   jsonnet_ext_code_envs = ctx.attr.ext_code_envs
   jsonnet_ext_str_files = ctx.attr.ext_str_files
   jsonnet_ext_str_file_vars = ctx.attr.ext_str_file_vars
   jsonnet_ext_code_files = ctx.attr.ext_code_files
   jsonnet_ext_code_file_vars = ctx.attr.ext_code_file_vars
+
+  jsonnet_ext_strs, strs_stamp_inputs = _make_stamp_resolve(ctx.attr.ext_strs, ctx, True)
+  jsonnet_ext_code, code_stamp_inputs = _make_stamp_resolve(ctx.attr.ext_code, ctx, True)
+  stamp_inputs = strs_stamp_inputs + code_stamp_inputs
+
   yaml_stream_arg = ["-y"] if ctx.attr.yaml_stream else []
   jsonnet_command = " ".join(
       ["OUTPUT=$(%s" % ctx.executable.jsonnet.short_path] +
@@ -269,11 +318,11 @@ def _jsonnet_to_json_test_impl(ctx):
       ["-J ."] +
       yaml_stream_arg +
       ["--ext-str %s=%s"
-       % (_quote(key), _quote(_make_resolve(ctx, val))) for key, val in jsonnet_ext_strs.items()] +
+       % (_quote(key), _quote(val)) for key, val in jsonnet_ext_strs.items()] +
       ["--ext-str %s"
        % ext_str_env for ext_str_env in jsonnet_ext_str_envs] +
       ["--ext-code %s=%s"
-       % (var, jsonnet_ext_code[var]) for var in jsonnet_ext_code.keys()] +
+       % (_quote(key), _quote(val)) for key, val in jsonnet_ext_code.items()] +
       ["--ext-code %s"
        % ext_code_env for ext_code_env in jsonnet_ext_code_envs] +
       ["--ext-str-file %s=%s"
@@ -307,7 +356,9 @@ def _jsonnet_to_json_test_impl(ctx):
       list(transitive_data) +
       list(depinfo.transitive_sources) +
       [list(jfile.files)[0] for jfile in jsonnet_ext_str_files] +
-      [list(jfile.files)[0] for jfile in jsonnet_ext_code_files])
+      [list(jfile.files)[0] for jfile in jsonnet_ext_code_files] +
+      stamp_inputs
+    )
 
   return struct(
       runfiles = ctx.runfiles(
@@ -397,6 +448,16 @@ _jsonnet_compile_attrs = {
         allow_files = True,
     ),
     "ext_code_file_vars": attr.string_list(),
+    "stamp_keys": attr.string_list(
+        default = [],
+        mandatory = False,
+    ),
+    "_stamper": attr.label(
+        default = Label("//jsonnet:stamper"),
+        cfg = "host",
+        executable = True,
+        allow_files = True,
+    ),
 }
 
 _jsonnet_to_json_attrs = {
