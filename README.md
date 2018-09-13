@@ -261,7 +261,7 @@ VAR1 value1
 # This can be overriden by users if they "export CLUSTER_OVERRIDE"
 CLUSTER ${CLUSTER_OVERRIDE:-default-value2}
 EOF
-
+</pre>
       </td>
     </tr>
     <tr>
