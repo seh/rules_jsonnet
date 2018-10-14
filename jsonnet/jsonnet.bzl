@@ -47,6 +47,14 @@ _JSONNET_FILETYPE = [
     ".json",
 ]
 
+def _add_prefix_to_imports(label, imports):
+  imports_prefix = ""
+  if label.workspace_root:
+    imports_prefix += label.workspace_root + "/"
+  if label.package:
+    imports_prefix += label.package + "/"
+  return [imports_prefix + im for im in imports]
+
 def _setup_deps(deps):
   """Collects source files and import flags of transitive dependencies.
 
@@ -64,7 +72,7 @@ def _setup_deps(deps):
   imports = depset()
   for dep in deps:
     transitive_sources += dep.transitive_jsonnet_files
-    imports += ["%s/%s" % (dep.label.package, im) for im in dep.imports]
+    imports += dep.imports
 
   return struct(
       transitive_sources = transitive_sources,
@@ -74,7 +82,7 @@ def _jsonnet_library_impl(ctx):
   """Implementation of the jsonnet_library rule."""
   depinfo = _setup_deps(ctx.attr.deps)
   sources = depinfo.transitive_sources + ctx.files.srcs
-  imports = depinfo.imports + ctx.attr.imports
+  imports = depinfo.imports + _add_prefix_to_imports(ctx.label, ctx.attr.imports)
   transitive_data = depset()
   for dep in ctx.attr.deps:
     transitive_data += dep.data_runfiles.files
@@ -170,7 +178,7 @@ def _jsonnet_to_json_impl(ctx):
           "set -e;",
           toolchain.jsonnet_path,
       ] +
-      ["-J %s/%s" % (ctx.label.package, im) for im in ctx.attr.imports] +
+      ["-J %s" % im for im in _add_prefix_to_imports(ctx.label, ctx.attr.imports)] +
       ["-J %s" % im for im in depinfo.imports.to_list()] +
       ["-J .",
        "-J %s" % ctx.genfiles_dir.path,
@@ -310,7 +318,7 @@ def _jsonnet_to_json_test_impl(ctx):
   yaml_stream_arg = ["-y"] if ctx.attr.yaml_stream else []
   jsonnet_command = " ".join(
       ["OUTPUT=$(%s" % ctx.executable.jsonnet.short_path] +
-      ["-J %s/%s" % (ctx.label.package, im) for im in ctx.attr.imports] +
+      ["-J %s" % im for im in _add_prefix_to_imports(ctx.label, ctx.attr.imports)] +
       ["-J %s" % im for im in depinfo.imports] +
       ["-J ."] +
       yaml_stream_arg +

@@ -162,3 +162,11 @@ jsonnet_to_json_test(
     golden = "yaml_stream_golden.yaml",
     yaml_stream = 1,
 )
+
+jsonnet_to_json_test(
+    name = "imports_test",
+    src = "imports.jsonnet",
+    golden = "imports_golden.json",
+    imports = ["imports"],
+    deps = ["//imports:a"],
+)
