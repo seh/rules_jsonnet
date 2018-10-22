@@ -93,8 +93,8 @@ jsonnet_to_json_test(
 filegroup(
     name = "test_str_files",
     srcs = [
-        "file.txt",
         "WORKSPACE",
+        "file.txt",
     ],
 )
 
@@ -116,8 +116,8 @@ jsonnet_to_json_test(
     ],
     ext_code_files = [":test_code_files"],
     ext_str_file_vars = [
-        "test",
-        "workspace",
+        "0-workspace",
+        "1-test",
     ],
     ext_str_files = [":test_str_files"],
     golden = "extvar_filegroup_golden.json",
@@ -140,17 +140,20 @@ jsonnet_to_json_test(
     name = "extvar_stamp_test",
     size = "small",
     src = "extvar_stamp.jsonnet",
-    ext_strs = {
-      "non_stamp": "non_stamp",
-      "mydefine": "$(mydefine)",
-      "k8s": "{STABLE_K8S_CLUSTER}",
-    },
     ext_code = {
-      "complex": "{COMPLEX_JSON}",
-      "my_json": "{test: 'something'}",
+        "complex": "{COMPLEX_JSON}",
+        "my_json": "{test: 'something'}",
     },
-    stamp_keys = ["k8s", "complex"],
-    golden = "extvar_stamp_golden.json"
+    ext_strs = {
+        "non_stamp": "non_stamp",
+        "mydefine": "$(mydefine)",
+        "k8s": "{STABLE_K8S_CLUSTER}",
+    },
+    golden = "extvar_stamp_golden.json",
+    stamp_keys = [
+        "k8s",
+        "complex",
+    ],
 )
 
 jsonnet_to_json_test(
