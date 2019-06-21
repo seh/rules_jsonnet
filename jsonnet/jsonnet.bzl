@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 """Jsonnet Rules
 
@@ -403,7 +403,7 @@ _jsonnet_common_attrs = {
     ),
     "imports": attr.string_list(),
     "jsonnet": attr.label(
-        default = Label("@jsonnet//cmd:jsonnet"),
+        default = Label("@jsonnet_go//cmd/jsonnet"),
         cfg = "host",
         executable = True,
         allow_single_file = True,
@@ -788,11 +788,10 @@ Example:
 
 def jsonnet_repositories():
     """Adds the external dependencies needed for the Jsonnet rules."""
-    http_archive(
-        name = "jsonnet",
-        sha256 = "f6f0c4ea333f3423f1a7237a8a107c589354c38be8a2a438198f9f7c69b77596",
-        strip_prefix = "jsonnet-0.13.0",
-        urls = [
-            "https://github.com/google/jsonnet/archive/v0.13.0.tar.gz",
-        ],
+    git_repository(
+        name = "jsonnet_go",
+        remote = "https://github.com/google/go-jsonnet",
+        commit = "4996d464715f0633f05ae7c056eb846209266907",
+        init_submodules = True,
+        shallow_since = "1562238587 +0200",
     )

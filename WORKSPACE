@@ -17,6 +17,14 @@ load("//jsonnet:jsonnet.bzl", "jsonnet_repositories")
 
 jsonnet_repositories()
 
+load("@jsonnet_go//bazel:repositories.bzl", "jsonnet_go_repositories")
+
+jsonnet_go_repositories()
+
+load("@jsonnet_go//bazel:deps.bzl", "jsonnet_go_dependencies")
+
+jsonnet_go_dependencies()
+
 # Used for documenting Jsonnet rules.
 # TODO: Move this to docs/WORKSPACE when recursive repositories are enabled.
 git_repository(

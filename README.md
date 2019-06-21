@@ -25,6 +25,7 @@ external repositories for Jsonnet:
 ```python
 http_archive(
     name = "io_bazel_rules_jsonnet",
+    # TODO: Update this to reflect a later release.
     sha256 = "59bf1edb53bc6b5adb804fbfabd796a019200d4ef4dd5cc7bdee03acc7686806",
     strip_prefix = "rules_jsonnet-0.1.0",
     urls = ["https://github.com/bazelbuild/rules_jsonnet/archive/0.1.0.tar.gz"],
@@ -32,6 +33,14 @@ http_archive(
 load("@io_bazel_rules_jsonnet//jsonnet:jsonnet.bzl", "jsonnet_repositories")
 
 jsonnet_repositories()
+
+load("@jsonnet_go//bazel:repositories.bzl", "jsonnet_go_repositories")
+
+jsonnet_go_repositories()
+
+load("@jsonnet_go//bazel:deps.bzl", "jsonnet_go_dependencies")
+
+jsonnet_go_dependencies()
 ```
 
 <a name="#jsonnet_library"></a>
