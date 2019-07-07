@@ -43,6 +43,19 @@ load("@jsonnet_go//bazel:deps.bzl", "jsonnet_go_dependencies")
 jsonnet_go_dependencies()
 ```
 
+## Jsonnet Port Selection
+
+By default, Bazel will use [the Go port](https://github.com/google/go-jsonnet) of Jsonnet. To use [the C++ port](https://github.com/google/jsonnet) of Jsonnet instead, invoke Bazel with the `--define jsonnet_port=cpp` command-line flag. To select the Go port explicitly, invoke Bazel with the `--define jsonnet_port=go` command-line flag.
+
+_bazel_ Flag | Jsonnet Port
+------------ | ------------
+(none)                     | Go
+`--define jsonnet_port=go` | Go
+`--define jsonnet_port=cpp`| C++
+
+Note that the primary development focus of the Jsonnet project is now with the Go port. This repository's support for using the C++ port is deprecated, and may be removed in a future release.
+
+
 <a name="#jsonnet_library"></a>
 ## jsonnet_library
 

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 """Jsonnet Rules
 
@@ -272,7 +273,7 @@ if [ "$OUTPUT" != "$GOLDEN" ]; then
   echo "FAIL (output mismatch): %s"
   echo "Diff:"
   diff <(echo "$GOLDEN") <(echo "$OUTPUT")
-  if [ %s = true]; then
+  if [ %s = true ]; then
     echo "Expected: $GOLDEN"
     echo "Actual: $OUTPUT"
   fi
@@ -284,7 +285,7 @@ _REGEX_DIFF_COMMAND = """
 GOLDEN_REGEX=$(%s %s)
 if [[ ! "$OUTPUT" =~ $GOLDEN_REGEX ]]; then
   echo "FAIL (regex mismatch): %s"
-  if [ %s = true]; then
+  if [ %s = true ]; then
     echo "Output: $OUTPUT"
   fi
   exit 1
@@ -403,7 +404,7 @@ _jsonnet_common_attrs = {
     ),
     "imports": attr.string_list(),
     "jsonnet": attr.label(
-        default = Label("@jsonnet_go//cmd/jsonnet"),
+        default = Label("//jsonnet:jsonnet_tool"),
         cfg = "host",
         executable = True,
         allow_single_file = True,
@@ -788,6 +789,14 @@ Example:
 
 def jsonnet_repositories():
     """Adds the external dependencies needed for the Jsonnet rules."""
+    http_archive(
+        name = "jsonnet",
+        sha256 = "f6f0c4ea333f3423f1a7237a8a107c589354c38be8a2a438198f9f7c69b77596",
+        strip_prefix = "jsonnet-0.13.0",
+        urls = [
+            "https://github.com/google/jsonnet/archive/v0.13.0.tar.gz",
+        ],
+    )
     git_repository(
         name = "jsonnet_go",
         remote = "https://github.com/google/go-jsonnet",

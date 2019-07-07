@@ -8,3 +8,25 @@ py_binary(
     main = "stamper.py",
     visibility = ["//visibility:public"],
 )
+
+config_setting(
+    name = "port_cpp",
+    define_values = {
+        "jsonnet_port": "cpp",
+    },
+)
+
+config_setting(
+    name = "port_go",
+    define_values = {
+        "jsonnet_port": "go",
+    },
+)
+
+alias(
+    name = "jsonnet_tool",
+    actual = select({
+        "//jsonnet:port_cpp": "@jsonnet//cmd:jsonnet",
+        "//conditions:default": "@jsonnet_go//cmd/jsonnet",
+    }),
+)
