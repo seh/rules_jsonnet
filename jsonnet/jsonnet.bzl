@@ -800,7 +800,7 @@ def jsonnet_repositories():
     git_repository(
         name = "jsonnet_go",
         remote = "https://github.com/google/go-jsonnet",
-        commit = "4996d464715f0633f05ae7c056eb846209266907",
+        commit = "13437c69e1834da8ca99dc8471adc97d0eb776d5",
         init_submodules = True,
-        shallow_since = "1562238587 +0200",
+        shallow_since = "1566677218 +0200",
     )
