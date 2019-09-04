@@ -7,7 +7,6 @@ package(default_visibility = ["//visibility:public"])
 load(
     "@io_bazel_rules_jsonnet//jsonnet:jsonnet.bzl",
     "jsonnet_library",
-    "jsonnet_to_json",
     "jsonnet_to_json_test",
 )
 
@@ -51,6 +50,7 @@ jsonnet_to_json_test(
     src = "invalid.jsonnet",
     error = 1,
     golden = "invalid.out",
+    regex = 1,
 )
 
 jsonnet_to_json_test(

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 """Jsonnet Rules
@@ -288,7 +289,7 @@ _REGEX_DIFF_COMMAND = """
 GOLDEN_REGEX=$(%s %s)
 if [[ ! "$OUTPUT" =~ $GOLDEN_REGEX ]]; then
   echo "FAIL (regex mismatch): %s"
-  if [ %s = true]; then
+  if [ %s = true ]; then
     echo "Output: $OUTPUT"
   fi
   exit 1
@@ -412,7 +413,7 @@ _jsonnet_common_attrs = {
     ),
     "imports": attr.string_list(),
     "jsonnet": attr.label(
-        default = Label("@jsonnet//cmd:jsonnet"),
+        default = Label("//jsonnet:jsonnet_tool"),
         cfg = "host",
         executable = True,
         allow_single_file = True,
@@ -805,4 +806,11 @@ def jsonnet_repositories():
         urls = [
             "https://github.com/google/jsonnet/archive/v0.13.0.tar.gz",
         ],
+    )
+    git_repository(
+        name = "jsonnet_go",
+        remote = "https://github.com/google/go-jsonnet",
+        commit = "13437c69e1834da8ca99dc8471adc97d0eb776d5",
+        init_submodules = True,
+        shallow_since = "1566677218 +0200",
     )
