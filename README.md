@@ -26,7 +26,7 @@ external repositories for Jsonnet:
 http_archive(
     name = "io_bazel_rules_jsonnet",
     sha256 = "68b5bcb0779599065da1056fc8df60d970cffe8e6832caf13819bb4d6e832459",
-    strip_prefix = "rules_jsonnet-0.1.0",
+    strip_prefix = "rules_jsonnet-0.2.0",
     urls = ["https://github.com/bazelbuild/rules_jsonnet/archive/0.2.0.tar.gz"],
 )
 load("@io_bazel_rules_jsonnet//jsonnet:jsonnet.bzl", "jsonnet_repositories")
