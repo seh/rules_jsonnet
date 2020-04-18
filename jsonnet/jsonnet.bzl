@@ -225,7 +225,7 @@ def _jsonnet_to_json_impl(ctx):
         command += [ctx.file.src.path, "-o", compiled_json.path]
 
     transitive_data = depset(transitive = [dep.data_runfiles.files for dep in ctx.attr.deps] +
-        [l.files for l in jsonnet_tla_code_files.keys()])
+                                          [l.files for l in jsonnet_tla_code_files.keys()])
     # NB(sparkprime): (1) transitive_data is never used, since runfiles is only
     # used when .files is pulled from it.  (2) This makes sense - jsonnet does
     # not need transitive dependencies to be passed on the commandline. It
@@ -807,11 +807,10 @@ def jsonnet_repositories():
             "https://github.com/google/jsonnet/archive/v0.15.0.tar.gz",
         ],
     )
-    http_archive(
+    git_repository(
         name = "jsonnet_go",
-        sha256 = "cddc3462151de4c5c65183b613895575db06297edd12a63e740f09e5e0ed98dd",
-        strip_prefix = "go-jsonnet-0.15.0",
-        urls = [
-            "https://github.com/google/go-jsonnet/archive/v0.15.0.tar.gz",
-        ],
+        remote = "https://github.com/google/go-jsonnet",
+        commit = "70a6b3d419d9ee16a144345c35e0305052c6f2d9",  # v0.15.0
+        shallow_since = "1581289066 +0100",
+        init_submodules = True,
     )
